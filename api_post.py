@@ -29,5 +29,4 @@ async def general_exception_handler(request, exc):
         content={"message": "An error occurred. Please try again later."},
     )
 
-# user_picture_endpoint(app, lock)
-celery_user_picture_endpoint(app, lock)
+dramatiq_user_picture_endpoint(app, lock)

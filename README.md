@@ -1,5 +1,5 @@
 # roop_FastAPI_Queued
-When facing very high traffic, the roop_FastAPI server can be overloaded. To prevent this, roop_FastAPI_Queued added queueing to roop_FastAPI using RabbitMQ and Celery.
+When facing very high traffic, the roop_FastAPI server can be overloaded. To prevent this, roop_FastAPI_Queued added queueing to roop_FastAPI using RabbitMQ and Dramatiq.
 roop_FastAPI is a web API wrapper for the "roop" project, designed to provide a user-friendly interface for interactions with the underlying roop system.
 roop_FastAPI allow for sending a POST with headless args and retrieving output with GET once ready.
 In order to improve the output capacity, this wrapper applies monkey patching on a few functions from the original roop project. This does not involve changing any code in the original roop repo.

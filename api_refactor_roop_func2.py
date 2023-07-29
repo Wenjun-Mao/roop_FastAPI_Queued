@@ -4,7 +4,7 @@ import cv2
 import os
 
 from api_refactor_roop_func1 import change_directory, update_status, release_resources
-from celery_worker import celery_send_return_data_to_api
+from dramatiq_worker import dramatiq_send_return_data_to_api
 
 change_directory()
 

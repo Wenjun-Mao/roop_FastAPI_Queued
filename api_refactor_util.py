@@ -52,49 +52,8 @@ def run_media_processing_script(
     return f"{server_address}/download_video/{current_mmdd}/{output_filename}"
 
 
-def user_picture_endpoint(app, lock):
-    @app.post("/")
-    async def process_user_picture(
-        background_tasks: BackgroundTasks,
-        content_type: str = Form(...),
-        content_name: str = Form(...),
-        face_restore: Optional[int] = Form(0),
-        file: Optional[UploadFile] = File(None),
-        url: Optional[str] = Form(None),
-        id: str = Form(...),
-    ):
-        os.environ['NO_FACE'] = '0'
-        url = unquote(url) if url else None
-        logger.info(
-            "content_name: %s, face_restore: %s, file: %s, url: %s",
-            content_name,
-            face_restore,
-            file,
-            url,
-        )
-
-        id_value = id
-        logger.info(f"Processing request for id: {id_value}")
-
-        validate_inputs(content_type, content_name, file, url)
-        incoming_file_path = create_incoming_file_path(file, url)
-        save_incoming_file(file, url, incoming_file_path)
-
-        async with lock:
-            download_link = run_media_processing_script(
-                content_type, incoming_file_path, content_name, face_restore
-            )
-            logger.info(f"face swap successful for id: {id_value}")
-            logger.info(f"download_link: {download_link}")
-            schedule_data_send_task(background_tasks, id_value, download_link)
-
-            return {"download_link": download_link}
-
-
-
-
-def celery_user_picture_endpoint(app, lock):
-    print("celery_user_picture_endpoint")
+def dramatiq_user_picture_endpoint(app, lock):
+    print("dramatiq_user_picture_endpoint")
     @app.post("/")
     async def process_user_picture(
         content_type: str = Form(...),
@@ -127,6 +86,6 @@ def celery_user_picture_endpoint(app, lock):
             )
             logger.info(f"face swap successful for id: {id_value}")
             logger.info(f"download_link: {download_link}")
-            celery_send_return_data_to_api.delay(id_value, download_link)
+            dramatiq_send_return_data_to_api.send(id_value, download_link)
 
             return {"download_link": download_link}
