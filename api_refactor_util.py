@@ -1,8 +1,10 @@
 # api_refactor_util.py
 
 import os
-from api_util_content_manager import *
+
 from api_refactor_roop_func2 import *
+from api_util_content_manager import *
+
 
 def run_media_processing_script(
     content_type: str, incoming_file_path: str, content_name: str, face_restore: bool
@@ -54,6 +56,7 @@ def run_media_processing_script(
 
 def dramatiq_user_picture_endpoint(app, lock):
     print("dramatiq_user_picture_endpoint")
+
     @app.post("/")
     async def process_user_picture(
         content_type: str = Form(...),
@@ -63,7 +66,7 @@ def dramatiq_user_picture_endpoint(app, lock):
         url: Optional[str] = Form(None),
         id: str = Form(...),
     ):
-        os.environ['NO_FACE'] = '0'
+        os.environ["NO_FACE"] = "0"
         url = unquote(url) if url else None
         logger.info(
             "content_name: %s, face_restore: %s, file: %s, url: %s",
@@ -78,7 +81,7 @@ def dramatiq_user_picture_endpoint(app, lock):
 
         validate_inputs(content_type, content_name, file, url)
         incoming_file_path = create_incoming_file_path(file, url)
-        save_incoming_file(file, url, incoming_file_path)
+        await save_incoming_file(file, url, incoming_file_path)
 
         async with lock:
             download_link = run_media_processing_script(
@@ -86,6 +89,6 @@ def dramatiq_user_picture_endpoint(app, lock):
             )
             logger.info(f"face swap successful for id: {id_value}")
             logger.info(f"download_link: {download_link}")
-            dramatiq_send_return_data_to_api.send(id_value, download_link)
+        dramatiq_send_return_data_to_api.send(id_value, download_link)
 
-            return {"download_link": download_link}
+        return {"download_link": download_link}

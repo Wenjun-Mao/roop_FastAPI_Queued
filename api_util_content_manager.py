@@ -1,5 +1,6 @@
 # api_util_content_manager.py
 
+import asyncio
 import datetime
 import os
 import subprocess
@@ -8,13 +9,22 @@ import time
 from typing import Optional
 from urllib.parse import unquote
 
+import httpx
 import requests
-from api_app_config import (DEBUG, default_picture_path, default_video_path,
-                            media_path, script_path, server_address)
+from fastapi import BackgroundTasks, File, Form, HTTPException, UploadFile
+
+from api_app_config import (
+    DEBUG,
+    default_picture_path,
+    default_video_path,
+    download_max_retries,
+    media_path,
+    script_path,
+    server_address,
+)
 from api_data_sender import send_return_data_to_api
 from api_face_restore import apply_face_restoration_to_picture
 from api_logger_config import get_logger
-from fastapi import BackgroundTasks, File, Form, HTTPException, UploadFile
 
 logger = get_logger(__name__)
 
@@ -45,23 +55,28 @@ def validate_inputs(
         )
 
 
-def download_from_url_with_retry(url: str, timeout: int = 15, max_attempts: int = 3):
+async def download_from_url_with_retry(
+    url: str, timeout: int = 15, max_attempts: int = 3
+):
+    max_attempts = download_max_retries
     start_time = time.time()
     attempts = 0
     while attempts < max_attempts:
         try:
-            response = requests.get(url, timeout=timeout)
-            response.raise_for_status()  # Raise exception if status code is not 200
-            logger.info(
-                "Picture received in %s seconds with %s attempt(s).",
-                round(time.time() - start_time, 2),
-                attempts + 1,
-            )
-            return response
-        except (requests.Timeout, requests.HTTPError):
+            async with httpx.AsyncClient() as client:
+                response = await client.get(url, timeout=timeout)
+                response.raise_for_status()  # Raise exception if status code is not 200
+                logger.info(
+                    "Picture received in %s seconds with %s attempt(s).",
+                    round(time.time() - start_time, 2),
+                    attempts + 1,
+                )
+                return response
+        except Exception as e:
             attempts += 1
-            time.sleep(2)  # Wait for 2 seconds before next attempt
-    raise requests.Timeout(f"Failed to retrieve {url} after {max_attempts} attempts")
+            logger.warning(f"Attempt {attempts} failed with error: {e}")
+            await asyncio.sleep(2)
+    raise httpx.Timeout(f"Failed to retrieve {url} after {max_attempts} attempts")
 
 
 def create_incoming_file_path(file: Optional[UploadFile], url: Optional[str]):
@@ -73,7 +88,7 @@ def create_incoming_file_path(file: Optional[UploadFile], url: Optional[str]):
     return incoming_file_path
 
 
-def save_incoming_file(
+async def save_incoming_file(
     file: Optional[UploadFile], url: Optional[str], incoming_file_path: str
 ):
     if file:
@@ -207,7 +222,7 @@ def user_picture_endpoint(app, lock):
 
         validate_inputs(content_type, content_name, file, url)
         incoming_file_path = create_incoming_file_path(file, url)
-        save_incoming_file(file, url, incoming_file_path)
+        await save_incoming_file(file, url, incoming_file_path)
 
         async with lock:
             download_link = run_media_processing_script(
