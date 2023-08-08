@@ -95,7 +95,7 @@ async def save_incoming_file(
         with open(incoming_file_path, "wb") as buffer:
             buffer.write(file.file.read())
     elif url:
-        response = download_from_url_with_retry(url)
+        response = await download_from_url_with_retry(url)
         with open(incoming_file_path, "wb") as buffer:
             buffer.write(response.content)
 
