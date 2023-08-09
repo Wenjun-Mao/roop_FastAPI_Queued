@@ -1,11 +1,14 @@
 import dramatiq
+from dramatiq.brokers.rabbitmq import RabbitmqBroker
 import requests
 
-from api_app_config import destination_url, sync_max_retries
+from api_app_config import destination_url, RabbitmqBrokerAddress
 from api_logger_config import get_logger
 
 logger = get_logger(__name__)
 
+broker = RabbitmqBroker(url=f'amqp://{RabbitmqBrokerAddress}')
+dramatiq.set_broker(broker)
 
 def _dramatiq_send_return_data_to_api(id_value: str, download_url: str) -> None:
     data = {
