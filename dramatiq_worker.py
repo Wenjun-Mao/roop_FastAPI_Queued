@@ -2,7 +2,7 @@ import dramatiq
 from dramatiq.brokers.rabbitmq import RabbitmqBroker
 import requests
 
-from api_app_config import destination_url, RabbitmqBrokerAddress
+from api_app_config import callback_url, RabbitmqBrokerAddress
 from api_logger_config import get_logger
 
 logger = get_logger(__name__)
@@ -15,16 +15,16 @@ def _dramatiq_send_return_data_to_api(id_value: str, download_url: str) -> None:
         "url": download_url,
         "id": id_value,
     }
-    logger.info(f"Sending data to destination API: {data}")
+    logger.info(f"Sending data to callback API: {data}")
 
-    response = requests.post(destination_url, json=data, timeout=5)
+    response = requests.post(callback_url, json=data, timeout=5)
     logger.info(
-        f"Response from destination API: {response.status_code} {response.json()} id: {id_value}"
+        f"Response from callback API: {response.status_code} {response.json()} id: {id_value}"
     )
     response.raise_for_status()
 
 
-@dramatiq.actor(max_retries=10, min_backoff=5000)
+@dramatiq.actor(queue_name='syncing_queue', max_retries=10, min_backoff=5000)
 def dramatiq_send_return_data_to_api(id_value, download_url):
     logger.info(f"Task started: send_return_data_to_api({id_value}, {download_url})")
     try:

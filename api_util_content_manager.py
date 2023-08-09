@@ -22,7 +22,7 @@ from api_app_config import (
     script_path,
     server_address,
 )
-from api_data_sender import send_return_data_to_api
+from api_callback_sender import send_return_data_to_api
 from api_face_restore import apply_face_restoration_to_picture
 from api_logger_config import get_logger
 
