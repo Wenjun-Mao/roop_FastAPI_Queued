@@ -6,7 +6,7 @@ import cv2
 
 from api_refactor_roop_func1 import (change_directory, release_resources,
                                      update_status)
-from dramatiq_worker import dramatiq_send_return_data_to_api
+from dramatiq_callback_worker import dramatiq_send_return_data_to_api
 
 change_directory()
 

@@ -1,14 +1,17 @@
-import dramatiq
-from dramatiq.brokers.rabbitmq import RabbitmqBroker
-import requests
+# dramatiq_worker.py
 
-from api_app_config import callback_url, RabbitmqBrokerAddress
+import dramatiq
+import requests
+from dramatiq.brokers.rabbitmq import RabbitmqBroker
+
+from api_app_config import RabbitmqBrokerAddress, callback_url
 from api_logger_config import get_logger
 
 logger = get_logger(__name__)
 
-broker = RabbitmqBroker(url=f'amqp://{RabbitmqBrokerAddress}')
+broker = RabbitmqBroker(url=f"amqp://{RabbitmqBrokerAddress}")
 dramatiq.set_broker(broker)
+
 
 def _dramatiq_send_return_data_to_api(id_value: str, download_url: str) -> None:
     data = {
@@ -24,7 +27,7 @@ def _dramatiq_send_return_data_to_api(id_value: str, download_url: str) -> None:
     response.raise_for_status()
 
 
-@dramatiq.actor(queue_name='callback_queue', max_retries=10, min_backoff=5000)
+@dramatiq.actor(queue_name="callback_queue", max_retries=10, min_backoff=5000)
 def dramatiq_send_return_data_to_api(id_value, download_url):
     logger.info(f"Task started: send_return_data_to_api({id_value}, {download_url})")
     try:
