@@ -24,7 +24,7 @@ def _dramatiq_send_return_data_to_api(id_value: str, download_url: str) -> None:
     response.raise_for_status()
 
 
-@dramatiq.actor(queue_name='syncing_queue', max_retries=10, min_backoff=5000)
+@dramatiq.actor(queue_name='callback_queue', max_retries=10, min_backoff=5000)
 def dramatiq_send_return_data_to_api(id_value, download_url):
     logger.info(f"Task started: send_return_data_to_api({id_value}, {download_url})")
     try:
