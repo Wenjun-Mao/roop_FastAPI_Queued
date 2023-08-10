@@ -229,6 +229,6 @@ def user_picture_endpoint(app, lock):
                 content_type, incoming_file_path, content_name, face_restore
             )
             logger.info(f"face swap successful for id: {id_value}")
-            schedule_data_send_task(background_tasks, id_value, download_link)
+        schedule_data_send_task(background_tasks, id_value, download_link)
 
-            return {"download_link": download_link}
+        return {"download_link": download_link}

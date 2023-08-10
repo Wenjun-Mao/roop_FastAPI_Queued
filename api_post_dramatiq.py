@@ -5,11 +5,17 @@ import os
 
 os.environ["OMP_NUM_THREADS"] = "1"
 
-from fastapi import FastAPI
+from typing import Optional
+from urllib.parse import unquote
+
+from fastapi import FastAPI, File, Form, UploadFile
 from fastapi.responses import JSONResponse
 
 from api_logger_config import get_logger
-from api_refactor_util import *
+from api_util_content_manager import create_incoming_file_path, validate_inputs
+from dramatiq_picture_download_worker import dramatiq_picture_download
+
+# from api_refactor_util import *
 
 logger = get_logger(__name__)
 app = FastAPI()
@@ -33,4 +39,42 @@ async def general_exception_handler(request, exc):
     )
 
 
-dramatiq_user_picture_endpoint(app, lock)
+@app.post("/")
+async def receive_user_request(
+    content_type: str = Form(...),
+    content_name: str = Form(...),
+    face_restore: Optional[int] = Form(0),
+    file: Optional[UploadFile] = File(None),
+    url: Optional[str] = Form(None),
+    id: str = Form(...),
+):
+    os.environ["NO_FACE"] = "0"
+
+    url = unquote(url) if url else None
+    logger.info(
+        "content_name: %s, face_restore: %s, file: %s, url: %s",
+        content_name,
+        face_restore,
+        file,
+        url,
+    )
+
+    id_value = id
+    logger.info(f"Received request for id: {id_value}")
+
+    validate_inputs(content_type, content_name, file, url)
+    incoming_file_path = create_incoming_file_path(file, url)
+    dramatiq_picture_download.send(
+        file,
+        url,
+        id_value,
+        content_type,
+        content_name,
+        face_restore,
+        incoming_file_path,
+    )
+
+    message = f"Request from ID: {id_value} received"
+    logger.info(message)
+
+    return {"message": message}
