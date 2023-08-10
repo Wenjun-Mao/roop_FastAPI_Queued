@@ -1,5 +1,6 @@
 # dramatiq_media_process_worker.py
 import os
+
 os.environ["OMP_NUM_THREADS"] = "1"
 
 import dramatiq
@@ -67,7 +68,16 @@ def run_media_processing_script(
 
 @dramatiq.actor(queue_name="media_process_queue", max_retries=10, min_backoff=5000)
 def dramatiq_media_process(
-    file, url, id_value, face_restore, incoming_file_path, global_no_face_detection
+    content_type,
+    incoming_file_path,
+    content_name,
+    face_restore,
+    id_value,
 ):
     os.environ["NO_FACE"] = "0"
-    pass
+    download_link = run_media_processing_script(
+        content_type, incoming_file_path, content_name, face_restore
+    )
+    logger.info(f"face swap finished for id: {id_value}")
+    logger.info(f"download_link: {download_link}")
+    dramatiq_send_return_data_to_api.send(id_value, download_link)

@@ -19,7 +19,7 @@ from dramatiq_picture_download_worker import dramatiq_picture_download
 
 logger = get_logger(__name__)
 app = FastAPI()
-lock = asyncio.Lock()
+# lock = asyncio.Lock()
 
 
 @app.exception_handler(ConnectionResetError)

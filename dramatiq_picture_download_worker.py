@@ -49,18 +49,23 @@ def save_incoming_file(
             buffer.write(response.content)
 
 
-@dramatiq.actor(queue_name="download_queue", max_retries=10, min_backoff=5000)
+@dramatiq.actor(queue_name="picture_download_queue", max_retries=10, min_backoff=5000)
 def dramatiq_picture_download(
-        file,
-        url,
-        id_value,
-        content_type,
-        content_name,
-        face_restore,
-        incoming_file_path,
-        global_no_face_detection,
-    ):
+    file,
+    url,
+    id_value,
+    content_type,
+    content_name,
+    face_restore,
+    incoming_file_path,
+):
     logger.info(f"Task started: picture_download({file}, {url}, {id_value})")
     save_incoming_file(file, url, incoming_file_path)
     logger.info(f"Task finished: picture_download({file}, {url}, {id_value})")
-    dramatiq_media_process.send()
+    dramatiq_media_process.send(
+        content_type,
+        incoming_file_path,
+        content_name,
+        face_restore,
+        id_value,
+    )

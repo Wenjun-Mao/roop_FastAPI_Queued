@@ -1,15 +1,18 @@
 # api_refactor_roop_func2.py
 
 import os
+import sys
 
 import cv2
 
+from api_app_config import roop_dir
 from api_refactor_roop_func1 import (change_directory, release_resources,
                                      update_status)
 from dramatiq_callback_worker import dramatiq_send_return_data_to_api
 
 change_directory()
 
+sys.path.append(roop_dir)
 import roop.processors.frame.face_swapper
 from roop.core import *
 from roop.face_analyser import get_one_face
