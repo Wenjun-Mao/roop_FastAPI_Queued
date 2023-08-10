@@ -1,4 +1,4 @@
-# dramatiq_worker.py
+# dramatiq_callback_worker.py
 
 import dramatiq
 import requests
