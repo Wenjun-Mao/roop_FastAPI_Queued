@@ -17,7 +17,7 @@ broker = RabbitmqBroker(url=f"amqp://{RabbitmqBrokerAddress}")
 dramatiq.set_broker(broker)
 
 
-def download_from_url_with_retry(url: str, timeout: int = 15, max_attempts: int = 3):
+def download_from_url_with_retry(url: str, timeout: int = 5, max_attempts: int = 3):
     max_attempts = download_max_retries
     start_time = time.time()
     attempts = 0
@@ -49,7 +49,7 @@ def save_incoming_file(
             buffer.write(response.content)
 
 
-@dramatiq.actor(queue_name="picture_download_queue", max_retries=10, min_backoff=5000)
+@dramatiq.actor(queue_name="picture_download_queue", max_retries=15, min_backoff=5000, time_limit=30000)
 def dramatiq_picture_download(
     file,
     url,

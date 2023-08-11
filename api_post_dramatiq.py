@@ -76,5 +76,6 @@ async def receive_user_request(
 
     message = f"Request from ID: {id_value} received"
     logger.info(message)
+    return_message = '1'
 
-    return {"message": message}
+    return {"message": return_message}

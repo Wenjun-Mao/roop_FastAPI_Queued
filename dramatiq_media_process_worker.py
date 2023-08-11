@@ -66,7 +66,7 @@ def run_media_processing_script(
     return f"{server_address}/download_video/{current_mmdd}/{output_filename}"
 
 
-@dramatiq.actor(queue_name="media_process_queue", max_retries=10, min_backoff=5000)
+@dramatiq.actor(queue_name="media_process_queue", max_retries=10, min_backoff=5000, time_limit=60000)
 def dramatiq_media_process(
     content_type,
     incoming_file_path,
