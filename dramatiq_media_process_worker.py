@@ -8,7 +8,6 @@ from dramatiq.brokers.rabbitmq import RabbitmqBroker
 
 from api_app_config import RabbitmqBrokerAddress
 from api_logger_config import get_logger
-
 from api_util_content_manager import *
 from api_refactor_roop_func2 import *
 
@@ -66,8 +65,7 @@ def run_media_processing_script(
     return f"{server_address}/download_video/{current_mmdd}/{output_filename}"
 
 
-@dramatiq.actor(queue_name="media_process_queue", max_retries=10, min_backoff=5000, time_limit=60000)
-def dramatiq_media_process(
+def process_media(
     content_type,
     incoming_file_path,
     content_name,
@@ -81,3 +79,36 @@ def dramatiq_media_process(
     logger.info(f"face swap finished for id: {id_value}")
     logger.info(f"download_link: {download_link}")
     dramatiq_send_return_data_to_api.send(id_value, download_link)
+
+
+@dramatiq.actor(
+    queue_name="media_process_queue", max_retries=10, min_backoff=5000, time_limit=60000
+)
+def dramatiq_media_process(
+    content_type,
+    incoming_file_path,
+    content_name,
+    face_restore,
+    id_value,
+):
+    process_media(
+        content_type, incoming_file_path, content_name, face_restore, id_value
+    )
+
+
+@dramatiq.actor(
+    queue_name="picture_process_queue",
+    max_retries=10,
+    min_backoff=5000,
+    time_limit=60000,
+)
+def dramatiq_picture_process(
+    content_type,
+    incoming_file_path,
+    content_name,
+    face_restore,
+    id_value,
+):
+    process_media(
+        content_type, incoming_file_path, content_name, face_restore, id_value
+    )

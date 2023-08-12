@@ -166,3 +166,4 @@ cython_debug/
 
 # Ignore WIP items
 *_rq.py
+dramatiq_media_process_remote_worker.py
