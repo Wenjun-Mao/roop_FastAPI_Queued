@@ -3,6 +3,7 @@
 import dramatiq
 import requests
 from dramatiq.brokers.rabbitmq import RabbitmqBroker
+import json
 
 from api_app_config import RabbitmqBrokerAddress, callback_url
 from api_logger_config import get_logger
@@ -21,9 +22,17 @@ def _dramatiq_send_return_data_to_api(id_value: str, download_url: str) -> None:
     logger.info(f"Sending data to callback API: {data}")
 
     response = requests.post(callback_url, json=data, timeout=5)
-    logger.info(
-        f"Response from callback API: {response.status_code} {response.json()} id: {id_value}"
-    )
+
+    try:
+        response_json = response.json()
+        logger.info(
+            f"Response from callback API: {response.status_code} {response_json} id: {id_value}"
+        )
+    except json.JSONDecodeError:
+        logger.info(
+            f"Non-JSON response from callback API: {response.status_code} {response.text} id: {id_value}"
+        )
+
     response.raise_for_status()
 
 
