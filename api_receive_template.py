@@ -39,10 +39,10 @@ async def receive_user_request(
 
     if content_type == "picture":
         file_name = id + ".jpg"
-        file_dir = f"{media_path}/api_video_templates"
+        file_dir = f"{media_path}/api_pic_templates"
     elif content_type == "video":
         file_name = id + "l.mp4"
-        file_dir = f"{media_path}/api_pic_templates"
+        file_dir = f"{media_path}/api_video_templates"
 
     file_path = os.path.join(file_dir, file_name)
 
