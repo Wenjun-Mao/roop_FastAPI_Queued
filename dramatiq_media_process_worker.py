@@ -2,6 +2,7 @@
 import os
 
 os.environ["OMP_NUM_THREADS"] = "1"
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 import dramatiq
 from dramatiq.brokers.rabbitmq import RabbitmqBroker
